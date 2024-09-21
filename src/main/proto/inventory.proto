@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package inventory;
+option java_outer_classname = "InventoryProto";
+
+service InventoryService {
+  rpc getStock(InventoryRequest) returns (InventoryStockResponse);
+}
+
+message InventoryRequest {
+  string productId = 1;
+  string variantId = 2;
+  string location = 3;
+}
+
+message InventoryStockResponse {
+  int32 stock = 1;
+}
