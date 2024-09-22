@@ -9,6 +9,8 @@ import inventory.InventoryProto.InventoryStockResponse;
 import inventory.InventoryServiceGrpc.InventoryServiceBlockingStub;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import product.ProductProto;
+import product.ProductServiceGrpc.ProductServiceBlockingStub;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +24,9 @@ public class CartService {
     private InventoryServiceBlockingStub inventoryServiceBlockingStub;
 
     @Autowired
+    private ProductServiceBlockingStub productServiceBlockingStub;
+
+    @Autowired
     private CartRepository cartRepository;
 
     @Autowired
@@ -30,6 +35,7 @@ public class CartService {
     private static final Integer INITIAL_CART_VALUE = 1;
 
     public void addToCart(String userId, String productId, String variantId, Integer quantity) {
+        validateProduct(productId, variantId);
         Integer availableStock = getStockAvailability(productId, variantId, quantity);
 
         UUID _userId = fromString(userId);
@@ -38,6 +44,20 @@ public class CartService {
         UUID _productId = fromString(productId);
         UUID _variantId = fromString(variantId);
         addOrUpdateToCart(cart, _productId, _variantId, availableStock, quantity);
+    }
+
+    private void validateProduct(String productId, String variantId) {
+        ProductProto.ProductRequest productRequest = ProductProto.ProductRequest.newBuilder()
+                .setProductId(productId)
+                .setVariantId(variantId)
+                .build();
+
+        ProductProto.ProductResponse productResponse = productServiceBlockingStub.validateProduct(productRequest);
+        System.out.println(productResponse);
+
+        if(productResponse.getError() && !productResponse.getValid()) {
+            throw new IllegalStateException(productResponse.getMessage());
+        }
     }
 
     private void addOrUpdateToCart(Cart cart, UUID productId, UUID variantId, Integer availableStock, Integer quantity) {
