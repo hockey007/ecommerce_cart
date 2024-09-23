@@ -25,4 +25,22 @@ public class CartController {
         );
     }
 
+    @PostMapping("/remove")
+    public void removeFromCart(@RequestBody CartRequestDto cartRequestDto) {
+        cartService.removeFromCart(
+                cartRequestDto.getUserId(),
+                cartRequestDto.getProductId(),
+                cartRequestDto.getVariantId()
+        );
+    }
+
+    @PostMapping("/delete")
+    public void deleteFromCart(@RequestBody CartRequestDto cartRequestDto) {
+        cartService.deleteFromCart(
+                cartRequestDto.getUserId(),
+                cartRequestDto.getProductId(),
+                cartRequestDto.getVariantId()
+        );
+    }
+
 }

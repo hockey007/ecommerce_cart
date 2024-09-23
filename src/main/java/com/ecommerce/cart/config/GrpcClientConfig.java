@@ -15,7 +15,7 @@ public class GrpcClientConfig {
     @Bean
     @Qualifier("inventoryChannel")
     public ManagedChannel inventoryServiceChannel() {
-        return ManagedChannelBuilder.forAddress("localhost", 9090)
+        return ManagedChannelBuilder.forAddress("localhost", 8084)
                 .usePlaintext()
                 .build();
     }
@@ -23,7 +23,7 @@ public class GrpcClientConfig {
     @Bean
     @Qualifier("productChannel")
     public ManagedChannel productServiceChannel() {
-        return ManagedChannelBuilder.forAddress("localhost", 8079)
+        return ManagedChannelBuilder.forAddress("localhost", 8082)
                 .usePlaintext()
                 .build();
     }
