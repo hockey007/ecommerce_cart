@@ -2,8 +2,10 @@ package com.ecommerce.cart.service;
 
 import com.ecommerce.cart.repository.CartItemRepository;
 import com.ecommerce.cart.repository.CartRepository;
-import inventory.InventoryProto;
-import inventory.InventoryServiceGrpc.InventoryServiceBlockingStub;
+import com.ecommerce.common.GetStockRequest;
+import com.ecommerce.common.GetStockResponse;
+import com.ecommerce.common.InventoryProto;
+import com.ecommerce.common.InventoryServiceGrpc.InventoryServiceBlockingStub;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,8 +37,8 @@ class CartServiceTest {
 
     @Test
     void testAddToCartThrowsIllegalStateExceptionWhenAvailableQuantityIsZero() {
-        when(inventoryService.getStock(any(InventoryProto.InventoryRequest.class)))
-                .thenReturn(InventoryProto.InventoryStockResponse.newBuilder().setStock(0).build());
+        when(inventoryService.getStock(any(GetStockRequest.class)))
+                .thenReturn(GetStockResponse.newBuilder().setStock(0).build());
 
         Exception exception = assertThrows(
                 IllegalStateException.class,
@@ -48,8 +50,8 @@ class CartServiceTest {
 
     @Test
     void testAddToCartThrowsExceptionWhenAvailableQuantityIsInsufficient() {
-        when(inventoryService.getStock(any(InventoryProto.InventoryRequest.class)))
-                .thenReturn(InventoryProto.InventoryStockResponse.newBuilder().setStock(5).build());
+        when(inventoryService.getStock(any(GetStockRequest.class)))
+                .thenReturn(GetStockResponse.newBuilder().setStock(5).build());
 
         Exception exception = assertThrows(
                 IllegalStateException.class,

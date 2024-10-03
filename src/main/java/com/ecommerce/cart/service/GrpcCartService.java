@@ -1,8 +1,8 @@
 package com.ecommerce.cart.service;
 
-import cart.CartProto.GetCartRequest;
-import cart.CartProto.GetCartResponse;
-import cart.CartServiceGrpc;
+import com.ecommerce.common.CartServiceGrpc;
+import com.ecommerce.common.GetCartRequest;
+import com.ecommerce.common.GetCartResponse;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 

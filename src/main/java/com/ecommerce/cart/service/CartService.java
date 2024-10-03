@@ -1,20 +1,19 @@
 package com.ecommerce.cart.service;
 
-import cart.CartProto;
-import cart.CartProto.ClearCartResponse;
 import com.ecommerce.cart.model.Cart;
 import com.ecommerce.cart.model.CartItem;
 import com.ecommerce.cart.repository.CartItemRepository;
 import com.ecommerce.cart.repository.CartRepository;
-import inventory.InventoryProto.InventoryRequest;
-import inventory.InventoryProto.InventoryStockResponse;
-import inventory.InventoryServiceGrpc.InventoryServiceBlockingStub;
-import jakarta.transaction.Transactional;
+import com.ecommerce.common.CartProduct;
+import com.ecommerce.common.GetCartResponse;
+import com.ecommerce.common.InventoryServiceGrpc.InventoryServiceBlockingStub;
+import com.ecommerce.common.ProductRequest;
+import com.ecommerce.common.ProductResponse;
+import com.ecommerce.common.GetStockRequest;
+import com.ecommerce.common.GetStockResponse;
+import com.ecommerce.common.ProductServiceGrpc.ProductServiceBlockingStub;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import product.ProductProto;
-import product.ProductServiceGrpc.ProductServiceBlockingStub;
-import cart.CartProto.GetCartResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,28 +38,6 @@ public class CartService {
 
     private static final Integer INITIAL_CART_VALUE = 1;
 
-    @Transactional
-    public ClearCartResponse clearCart(String userId) {
-        ClearCartResponse.Builder cartResponseBuilder = ClearCartResponse.newBuilder();
-        try {
-            UUID _userId = fromString(userId);
-            Cart cart = cartRepository.findByUserId(_userId)
-                    .orElseThrow(() -> new IllegalStateException("Cart not found for UserId"));
-
-            Boolean cleared = cartItemRepository.deleteByCartId(cart.getId());
-            if(!cleared) {
-                throw new IllegalStateException("Something went wrong");
-            }
-
-            cartRepository.delete(cart);
-            cartResponseBuilder.setSuccess(true);
-        } catch (Exception e) {
-            cartResponseBuilder.setMessage(e.getMessage());
-        }
-
-        return cartResponseBuilder.build();
-    }
-
     public GetCartResponse getCartItems(String userId) {
         Cart cart = cartRepository.findByUserId(fromString(userId))
                 .orElseThrow(() -> new IllegalStateException("Cart not found for user"));
@@ -68,7 +45,7 @@ public class CartService {
         List<CartItem> cartItems = cartItemRepository.findByCart(cart);
         GetCartResponse.Builder cartResponse = GetCartResponse.newBuilder();
         for(CartItem cartItem: cartItems) {
-            CartProto.CartItem grpcCartItem = CartProto.CartItem.newBuilder()
+            CartProduct grpcCartItem = CartProduct.newBuilder()
                     .setProductId(cartItem.getProductId().toString())
                     .setVariantId(cartItem.getVariantId().toString())
                     .setQuantity(cartItem.getQuantity())
@@ -133,12 +110,12 @@ public class CartService {
     }
 
     private void validateProduct(String productId, String variantId) {
-        ProductProto.ProductRequest productRequest = ProductProto.ProductRequest.newBuilder()
+        ProductRequest productRequest = ProductRequest.newBuilder()
                 .setProductId(productId)
                 .setVariantId(variantId)
                 .build();
 
-        ProductProto.ProductResponse productResponse = productServiceBlockingStub.validateProduct(productRequest);
+        ProductResponse productResponse = productServiceBlockingStub.validateProduct(productRequest);
         System.out.println(productResponse);
 
         if(productResponse.getError() && !productResponse.getValid()) {
@@ -169,13 +146,12 @@ public class CartService {
     }
 
     private Integer getStockAvailability(String productId, String variantId, Integer quantity) {
-        InventoryRequest inventoryRequest = InventoryRequest.newBuilder()
+        GetStockRequest inventoryRequest = GetStockRequest.newBuilder()
                 .setProductId(productId)
                 .setVariantId(variantId)
-                .setLocation("Test")
                 .build();
 
-        InventoryStockResponse inventoryStockResponse = inventoryServiceBlockingStub.getStock(inventoryRequest);
+        GetStockResponse inventoryStockResponse = inventoryServiceBlockingStub.getStock(inventoryRequest);
         Integer availableStock = inventoryStockResponse.getStock();
 
         if (availableStock == 0 || (quantity != null && availableStock < quantity)) {
